@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import requests
 
 # Snowflake connection
@@ -14,18 +15,16 @@ name_on_order = st.text_input("Name on Smoothie:")
 
 st.write("The name on your Smoothie will be:", name_on_order)
 
-# Read fruits from Snowflake
-fruit_df = cnx.query("""
-    SELECT FRUIT_NAME
+# Read fruit table with FRUIT_NAME and SEARCH_ON
+pd_df = cnx.query("""
+    SELECT FRUIT_NAME, SEARCH_ON
     FROM SMOOTHIES.PUBLIC.FRUIT_OPTIONS
 """)
-
-fruit_list = fruit_df["FRUIT_NAME"].tolist()
 
 # Fruit selection
 ingredients_list = st.multiselect(
     "Choose up to 5 ingredients:",
-    fruit_list,
+    pd_df["FRUIT_NAME"],
     max_selections=5
 )
 
@@ -37,10 +36,17 @@ if ingredients_list:
 
         ingredients_string += fruit_chosen + " "
 
+        search_on = pd_df.loc[
+            pd_df["FRUIT_NAME"] == fruit_chosen,
+            "SEARCH_ON"
+        ].iloc[0]
+
+        st.write("The search value for", fruit_chosen, "is", search_on, ".")
+
         st.subheader(fruit_chosen + " Nutrition Information")
 
         smoothiefroot_response = requests.get(
-            "https://my.smoothiefroot.com/api/fruit/" + fruit_chosen
+            "https://my.smoothiefroot.com/api/fruit/" + search_on
         )
 
         st.dataframe(
@@ -67,4 +73,3 @@ if ingredients_list:
 
         finally:
             cursor.close()
-              
