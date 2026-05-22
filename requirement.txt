@@ -1,3 +1,4 @@
-streamlit
-snowflake-connector-python
+#requirements.text
+
 snowflake-snowpark-python
+streamlit
